@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  TextInput,
+  Image,
   ActivityIndicator,
 } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
@@ -17,7 +19,9 @@ var {width, height} = Dimensions.get('window');
 
 export const DisplayScreen = ({navigation}) => {
   const [listData, setListData] = useState([]);
+  const [masterData, setMasterData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     setIsLoading(true);
@@ -28,29 +32,26 @@ export const DisplayScreen = ({navigation}) => {
           .orderBy('name', 'asc')
           .get()
           .then(querySnapshot => {
-            /*
-                  A QuerySnapshot allows you to inspect the collection,
-                  such as how many documents exist within it,
-                  access to the documents within the collection,
-                  any changes since the last query and more.
-              */
             let temp = [];
-            console.log('Total users: ', querySnapshot.size);
+            let masterTemp = [];
+
             querySnapshot.forEach(documentSnapshot => {
-              console.log('user Id: ', documentSnapshot.id);
-              /*
-                  A DocumentSnapshot belongs to a specific document,
-                  With snapshot you can view a documents data,
-                  metadata and whether a document actually exists.
-                */
               let userDetails = {};
-              // Document fields
+              let secondeUserDetails = {};
+
               userDetails = documentSnapshot.data();
-              // All the document related data
               userDetails['id'] = documentSnapshot.id;
               temp.push(userDetails);
+
+              secondeUserDetails = documentSnapshot.data();
+              secondeUserDetails['id'] = documentSnapshot.id;
+              masterTemp.push(secondeUserDetails)
+
+
               setListData(temp);
+              setMasterData(masterTemp)
               setIsLoading(false);
+    
             });
           });
       };
@@ -60,8 +61,24 @@ export const DisplayScreen = ({navigation}) => {
     }
   }, []);
 
+
+
+  const searchFilter = (text) => {
+    if(text){
+      const newData = masterData.filter((item)=>
+      item.name.toLowerCase().includes(text.toLowerCase())
+      )
+      console.log('New data',newData)
+      setListData(newData)
+      setSearch(text)
+    } else {
+      setListData(masterData)
+      setSearch(text)
+    }
+  }
+
   const onDeleteUser = async deleteId => {
-    console.log('Delete user ID', deleteId);
+    // console.log('Delete user ID', deleteId);
     await firestore()
       .collection('users')
       .doc(deleteId)
@@ -87,9 +104,25 @@ export const DisplayScreen = ({navigation}) => {
         </TouchableOpacity>
       </View>
 
-      <Text style={{alignSelf: 'center', color: '#FFF', marginBottom: 25}}>
+      <Text style={{alignSelf: 'center', color: '#FFF', marginBottom: 20}}>
         _________________________________
       </Text>
+
+      <View style={styles.searchBar}>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <Image
+          source={require('../assets/search.png')}
+          style={{width: 25, height: 25, marginLeft: 15}}
+        />
+        <TextInput
+            value={search}
+            placeholder="Search..."
+            placeholderTextColor="#777"
+            onChangeText={(text)=> searchFilter(text)}
+            style={{color: '#007788', marginLeft: 10, fontSize: 17}}
+        />
+        </View>
+      </View>
 
       <View
         style={{
@@ -173,4 +206,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     marginTop: 25,
   },
+
+  searchBar:{
+    borderRadius:10,
+    marginHorizontal: 15,
+    height: height/15,
+    backgroundColor: '#FFF',
+    marginBottom: 15,
+    justifyContent: 'center',
+  }
 });
+
+
