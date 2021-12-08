@@ -108,7 +108,7 @@ export const ListItemView = ({item, onDelete}) => {
 
       <TouchableOpacity onPress={() => setModalOpen(true)}>
         <View style={styles.viewContainer}>
-          <Text style={{color: '#007788'}}>{item.name}</Text>
+          <Text style={{color: '#007788', textTransform: 'capitalize'}}>{item.name.toLowerCase()}</Text>
         </View>
       </TouchableOpacity>
     </View>
